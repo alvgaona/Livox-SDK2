@@ -29,6 +29,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <netdb.h>
+#include <errno.h>
 
 namespace livox {
 namespace lidar {
@@ -60,10 +61,20 @@ socket_t CreateSocket(uint16_t port, bool nonblock, bool reuse_port, bool is_bro
     status = setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
                         (char *) &on, sizeof (on));
     if (status != 0) {
+      printf("reuse addr failed\n");
+      close(sock);
+      return -1;
+    }
+#ifdef SO_REUSEPORT
+    // On macOS/BSD and modern Linux, SO_REUSEPORT is required to bind multiple sockets to the same port
+    status = setsockopt(sock, SOL_SOCKET, SO_REUSEPORT,
+                        (char *) &on, sizeof (on));
+    if (status != 0) {
       printf("reuse port failed\n");
       close(sock);
       return -1;
-   }
+    }
+#endif
   }
   status = setsockopt(sock, SOL_SOCKET, SO_RCVBUF,
 	  (char *)&recv_buff_size, sizeof(recv_buff_size));
@@ -89,7 +100,9 @@ socket_t CreateSocket(uint16_t port, bool nonblock, bool reuse_port, bool is_bro
 
   status = bind(sock, (const struct sockaddr *)&servaddr, sizeof(servaddr));
   if (status != 0) {
-    printf("bind failed\n");
+    printf("ERROR: bind failed - port=%d, netif='%s', addr=0x%x, errno=%d (%s)\n",
+           port, netif.c_str(), servaddr.sin_addr.s_addr, errno,
+           errno == 48 ? "Address already in use" : strerror(errno));
     close(sock);
     return -1;
   }

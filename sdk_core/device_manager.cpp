@@ -261,7 +261,7 @@ bool DeviceManager::CreateChannel() {
 bool DeviceManager::CreateDetectionChannel() {
 #ifdef WIN32
 #else
-  detection_broadcast_socket_ = util::CreateSocket(kDetectionPort, true, true, true, "255.255.255.255", "");
+  detection_broadcast_socket_ = util::CreateSocket(kDetectionPort, true, true, true, "", "");
   if (detection_broadcast_socket_ < 0) {
     LOG_ERROR("Create detection broadcast socket failed.");
     return false;
@@ -327,7 +327,7 @@ bool DeviceManager::CreateCommandChannel(const uint8_t dev_type, const HostNetIn
 #ifdef WIN32
 #else
   if (dev_type == kLivoxLidarTypeMid360) {
-    socket_t broadcast_socket = util::CreateSocket(host_net_info.push_msg_port, true, true, true, "255.255.255.255", "");
+    socket_t broadcast_socket = util::CreateSocket(host_net_info.push_msg_port, true, true, true, "", "");
     if (broadcast_socket < 0) {
       LOG_ERROR("Create broadcast socket failed.");
       return false;
@@ -445,6 +445,7 @@ void DeviceManager::Detection() {
       (const struct sockaddr *) &servaddr, sizeof(servaddr));
   if (byte_send < 0) {
     LOG_INFO("Detection lidars failed, Send to lidar failed.");
+    printf("ERROR: Detection broadcast failed, errno=%d\n", errno);
   }
 }
 
