@@ -324,9 +324,6 @@ void GeneralCommandHandler::HandleDetectionData(uint32_t handle, uint16_t lidar_
   LOG_INFO("Handle detection data, handle:{}, dev_type:{}, sn:{}, cmd_port:{}",
       handle, detection_data->dev_type, detection_data->sn, detection_data->cmd_port);
 
-  printf("LiDAR detected: IP=%s, Type=%d, SN=%s\n",
-         lidar_ip.c_str(), detection_data->dev_type, detection_data->sn);
-
   LoggerManager::GetInstance().AddDevice(handle, detection_data);
   DebugPointCloudManager::GetInstance().AddDevice(handle, detection_data);
 
@@ -367,6 +364,9 @@ void GeneralCommandHandler::HandleDetectionData(uint32_t handle, uint16_t lidar_
       device_dev_type_[handle] = detection_data->dev_type;
     }
   }
+
+  LOG_INFO("LiDAR detected: IP={}, Type={}, SN={}",
+      lidar_ip.c_str(), detection_data->dev_type, detection_data->sn);
 
   DeviceInfo& device_info = devices_[handle];
   device_info.sn = detection_data->sn;
